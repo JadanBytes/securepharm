@@ -1,9 +1,7 @@
 
-
-
 import React, { useState, useMemo, useCallback, useContext, createContext, useEffect } from 'react';
 import LoginPage from './pages/LoginPage';
-// Fix: Changed to a default import of Dashboard to resolve a circular dependency issue.
+// Fix: Use a default import for Dashboard to resolve circular dependency.
 import Dashboard from './pages/Dashboard';
 import { User, Role, PlatformSettings } from './types';
 import { api } from './services/api';

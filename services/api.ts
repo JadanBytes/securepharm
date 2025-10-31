@@ -606,6 +606,7 @@ export const api = {
         });
     },
     getSales: async (pharmacyId: string): Promise<Sale[]> => Promise.resolve(sales.filter(s => s.pharmacyId === pharmacyId)),
+    getSaleById: async (saleId: string): Promise<Sale | undefined> => Promise.resolve(sales.find(s => s.id === saleId)),
     getDailySalesReport: async (pharmacyId: string): Promise<{ cash: number, transfer: number, card: number, total: number }> => {
         const todaySales = sales.filter(s => s.pharmacyId === pharmacyId && new Date(s.createdAt).toDateString() === new Date().toDateString());
         const report = { cash: 0, transfer: 0, card: 0, total: 0 };
