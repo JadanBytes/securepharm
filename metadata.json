@@ -1,0 +1,5 @@
+{
+  "name": "SecurePharm",
+  "description": "A complete cloud-based pharmacy management platform that allows multiple pharmacies to register, manage their sales, stock, staff, and reports. Built for commercial use.",
+  "requestFramePermissions": []
+}
