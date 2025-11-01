@@ -845,7 +845,17 @@ export const api = {
 
         return Promise.resolve(Object.values(reportMap).sort((a, b) => b.totalRevenue - a.totalRevenue));
     },
-    getInventoryLevelsReport: async (pharmacyId: string): Promise<InventoryLevelReportItem[]> => Promise.resolve([]),
+    getInventoryLevelsReport: async (pharmacyId: string): Promise<InventoryLevelReportItem[]> => {
+        const pharmacyMedicines = medicines.filter(m => m.pharmacyId === pharmacyId);
+        return Promise.resolve(pharmacyMedicines.map(m => ({
+            id: m.id,
+            name: m.name,
+            stockQuantity: m.stockQuantity,
+            costPrice: m.costPrice,
+            sellingPrice: m.sellingPrice,
+            inventoryValue: m.stockQuantity * m.costPrice,
+        })));
+    },
     getDetailedSalesReport: async (pharmacyId: string): Promise<DetailedSaleReportItem[]> => {
         const reportItems: DetailedSaleReportItem[] = [];
         const pharmacy = pharmacies.find(p => p.id === pharmacyId);
@@ -887,7 +897,37 @@ export const api = {
         }
         return Promise.resolve(reportItems.sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()));
     },
-    getStockHistoryReport: async (pharmacyId: string, start: string, end: string): Promise<StockHistoryReportItem[]> => Promise.resolve([]),
+    getStockHistoryReport: async (pharmacyId: string, start: string, end: string): Promise<StockHistoryReportItem[]> => {
+        // This is a simplified mock. A real implementation would query a transaction log.
+        const pharmacyMedicines = medicines.filter(m => m.pharmacyId === pharmacyId);
+        const pharmacySales = sales.filter(s => s.pharmacyId === pharmacyId);
+        const pharmacyReturns = returns.filter(r => r.pharmacyId === pharmacyId);
+
+        const report: StockHistoryReportItem[] = pharmacyMedicines.map(med => {
+            const salesForMed = pharmacySales.flatMap(s => s.items).filter(i => i.medicineId === med.id);
+            const stockOut = salesForMed.reduce((sum, item) => sum + item.quantity, 0);
+
+            const returnsForMed = pharmacyReturns.flatMap(r => r.items).filter(i => i.medicineId === med.id);
+            const returned = returnsForMed.reduce((sum, item) => sum + item.quantity, 0);
+            
+            // Mocking other values
+            const stockIn = Math.floor(Math.random() * 50); // Random stock in
+            const closingStock = med.stockQuantity;
+            const openingStock = closingStock - stockIn + stockOut - returned;
+
+            return {
+                medicineId: med.id,
+                medicineName: med.name,
+                openingStock: openingStock > 0 ? openingStock : 0,
+                stockIn,
+                stockOut,
+                returned,
+                closingStock,
+            };
+        });
+
+        return Promise.resolve(report);
+    },
     getStockReport: async (pharmacyId: string): Promise<StockReportItem[]> => {
         const reportItems: StockReportItem[] = medicines
             .filter(m => m.pharmacyId === pharmacyId)

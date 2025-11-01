@@ -1295,6 +1295,10 @@ const Settings: React.FC = () => {
     );
 };
 
+const Communication: React.FC = () => {
+    return <Card><h1 className="text-xl font-bold">Communication</h1><p>This module is under construction.</p></Card>
+}
+
 // --- END: SUPER ADMIN COMPONENTS ---
 
 
@@ -1498,6 +1502,8 @@ const DetailedSalesReport: React.FC<{ user: User }> = ({ user }) => {
     );
 };
 
+const Medicines: React.FC<{user: User}> = ({user}) => { return <Card>Medicines component under construction.</Card>}
+
 // ... (rest of the components like POS, Medicines, etc.)
 
 
@@ -1516,7 +1522,8 @@ const Dashboard: React.FC<{ user: User, brandingSettings?: PlatformBranding | nu
     const auth = useAuth();
     // Auto-logout logic
     useEffect(() => {
-        let logoutTimer: NodeJS.Timeout;
+        // Fix: Replace NodeJS.Timeout with ReturnType<typeof setTimeout> for browser compatibility.
+        let logoutTimer: ReturnType<typeof setTimeout>;
         // Fix: Add a `typeof` check to ensure autoLogoutMinutes is a number before performing arithmetic.
         if (pharmacy?.sessionSettings?.autoLogoutEnabled && typeof pharmacy.sessionSettings.autoLogoutMinutes === 'number') {
             const logout = () => {
@@ -1581,7 +1588,7 @@ const Dashboard: React.FC<{ user: User, brandingSettings?: PlatformBranding | nu
             { name: 'Settings', icon: <IconSettings />, view: 'settings' },
         ];
         
-        const pharmacyItems = {
+        const pharmacyItems: Partial<Record<Role, { name: string; icon: ReactElement; view: string }[]>> = {
             [Role.PHARMACY_ADMIN]: [
                 { name: 'Dashboard', icon: <IconHome />, view: 'dashboard' },
                 { name: 'POS', icon: <IconShoppingCart />, view: 'pos' },
@@ -1642,7 +1649,7 @@ const Dashboard: React.FC<{ user: User, brandingSettings?: PlatformBranding | nu
                 case 'staff': return <SAStaff />;
                 case 'system_health': return <SystemHealth />;
                 case 'user_activity': return <UserActivity />;
-                // case 'communication': return <Communication />;
+                case 'communication': return <Communication />;
                 case 'settings': return <Settings />;
                 default: return <SADashboard navigateTo={navigateTo} />;
             }
@@ -1656,15 +1663,15 @@ const Dashboard: React.FC<{ user: User, brandingSettings?: PlatformBranding | nu
             case 'reports': return <Reports user={user} />;
             case 'settings': return <PharmacySettings user={user} pharmacy={pharmacy} onUpdate={setPharmacy} />;
             case 'pos': return <POS user={user} />;
-            // case 'medicines': return <Medicines user={user} />;
+            case 'medicines': return <Medicines user={user} />;
             case 'prescriptions': return <Prescriptions user={user} />;
             case 'staff': return <PharmacyStaff user={user} />;
             case 'suppliers': return <Suppliers user={user} />;
             case 'expenses': return <Expenses user={user} />;
-            // case 'finances': return <PharmacyFinances user={user} />;
-            case 'my_support_tickets': return <MySupportTickets user={user} navigateTo={navigateTo} />;
+            case 'finances': return <PharmacyFinances user={user} />;
+            case 'my_support_tickets': return <MySupportTickets user={user} pharmacy={pharmacy} navigateTo={navigateTo} />;
             case 'support_ticket_details': return <SupportTicketDetails ticketId={viewParams.ticketId} user={user} navigateTo={navigateTo} />;
-            // case 'my_subscription': return <MySubscription user={user} />;
+            case 'my_subscription': return <MySubscription user={user} pharmacy={pharmacy} />;
             case 'returns': return <Returns user={user} />;
             default: 
                  if (isCashier) return <CashierDashboard user={user} navigateTo={navigateTo} />;
@@ -1880,8 +1887,8 @@ const PharmacyInformationSettings: React.FC<{ pharmacy: Pharmacy, onUpdate: (pha
     )
 };
 
-const POS: React.FC<{ user: User }> = ({ user }) => { return <div>POS Component</div> }
-const Prescriptions: React.FC<{ user: User }> = ({ user }) => { return <div>Prescriptions Component</div> }
+const POS: React.FC<{ user: User }> = ({ user }) => { return <Card><h1 className="text-xl font-bold">Point of Sale</h1><p>This module is under construction.</p></Card> }
+const Prescriptions: React.FC<{ user: User }> = ({ user }) => { return <Card><h1 className="text-xl font-bold">Prescriptions</h1><p>This module is under construction.</p></Card> }
 
 const PharmacyStaff: React.FC<{ user: User }> = ({ user }) => {
      const [staff, setStaff] = useState<User[]>([]);
@@ -1901,19 +1908,89 @@ const PharmacyStaff: React.FC<{ user: User }> = ({ user }) => {
     };
 
      return (
-        <div>
-            Staff management for pharmacy.
-            {/* The modal and table would go here */}
-        </div>
+        <Card>
+            <h1 className="text-xl font-bold">Staff Management</h1>
+            <p>This module is under construction.</p>
+        </Card>
      )
 }
 
-const Suppliers: React.FC<{ user: User }> = ({ user }) => { return <div>Suppliers Component</div> }
-const Expenses: React.FC<{ user: User }> = ({ user }) => { return <div>Expenses Component</div> }
-const MySupportTickets: React.FC<{ user: User, navigateTo: (view: string, params?: Record<string, any>) => void }> = ({ user, navigateTo }) => { 
-    return <div>MySupportTickets Component</div> 
+const Suppliers: React.FC<{ user: User }> = ({ user }) => { return <Card><h1 className="text-xl font-bold">Suppliers</h1><p>This module is under construction.</p></Card> }
+const Expenses: React.FC<{ user: User }> = ({ user }) => { return <Card><h1 className="text-xl font-bold">Expenses</h1><p>This module is under construction.</p></Card> }
+const MySupportTickets: React.FC<{ user: User, pharmacy: Pharmacy | null, navigateTo: (view: string, params?: Record<string, any>) => void }> = ({ user, pharmacy, navigateTo }) => { 
+    const [tickets, setTickets] = useState<SupportTicket[]>([]);
+
+    useEffect(() => {
+        if (user.pharmacyId) {
+            api.getSupportTickets(user.pharmacyId).then(setTickets);
+        }
+    }, [user.pharmacyId]);
+    
+    return (
+        <div className="space-y-4">
+            <Card>
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold">My Support Tickets</h2>
+                    <Button onClick={() => { /* Open create ticket modal */ }}>
+                        <IconPlusCircle className="w-5 h-5 mr-2" /> Create New Ticket
+                    </Button>
+                </div>
+            </Card>
+            <Card>
+                <Table headers={['Created', 'Subject', 'Priority', 'Status', 'Last Update']}>
+                    {tickets.map(ticket => (
+                        <TableRow key={ticket.id} className="cursor-pointer" onClick={() => navigateTo('support_ticket_details', { ticketId: ticket.id })}>
+                            <TableCell>{formatDateTime(ticket.createdAt)}</TableCell>
+                            <TableCell className="font-medium">{ticket.subject}</TableCell>
+                            <TableCell><span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTicketPriorityColor(ticket.priority)}`}>{ticket.priority}</span></TableCell>
+                            <TableCell><span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTicketStatusColor(ticket.status)}`}>{ticket.status}</span></TableCell>
+                            <TableCell>{formatDateTime(ticket.updatedAt)}</TableCell>
+                        </TableRow>
+                    ))}
+                </Table>
+            </Card>
+        </div>
+    )
 }
-const Returns: React.FC<{ user: User }> = ({ user }) => { return <div>Returns Component</div> }
+const Returns: React.FC<{ user: User }> = ({ user }) => { return <Card><h1 className="text-xl font-bold">Returns</h1><p>This module is under construction.</p></Card> }
+const PharmacyFinances: React.FC<{ user: User }> = ({ user }) => {
+    const [summary, setSummary] = useState<PharmacyFinanceSummary | null>(null);
+    useEffect(() => {
+        if(user.pharmacyId) {
+            api.getPharmacyFinanceSummary(user.pharmacyId).then(setSummary);
+        }
+    }, [user.pharmacyId]);
+
+    if (!summary) return <Card>Loading financial summary...</Card>;
+
+    return (
+        <div className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard title="Total Revenue" value={formatCurrency(summary.totalRevenue)} icon={<IconTrendingUp />} color="bg-green-500" />
+                <StatCard title="Total Expenses" value={formatCurrency(summary.totalExpenses)} icon={<IconTrendingDown />} color="bg-red-500" />
+                <StatCard title="Net Profit" value={formatCurrency(summary.netProfit)} icon={<IconDollarSign />} color="bg-blue-500" />
+            </div>
+            <Card>
+                <h2 className="text-xl font-bold mb-4">Monthly Performance</h2>
+                 <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={summary.monthlyData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                        <Legend />
+                        <Bar dataKey="revenue" fill="#4ade80" name="Revenue" />
+                        <Bar dataKey="expenses" fill="#f87171" name="Expenses" />
+                    </BarChart>
+                </ResponsiveContainer>
+            </Card>
+        </div>
+    )
+}
+const MySubscription: React.FC<{ user: User; pharmacy: Pharmacy | null }> = ({ user, pharmacy }) => {
+    return <Card><h1 className="text-xl font-bold">My Subscription</h1><p>This module is under construction.</p></Card>
+}
+
 
 const PrintableReceipt: React.FC<{ sale: Sale; pharmacy: Pharmacy }> = ({ sale, pharmacy }) => {
     return (
