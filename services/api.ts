@@ -814,7 +814,43 @@ export const api = {
         const { password, ...userToReturn } = newUser;
         return Promise.resolve(userToReturn);
     },
-    getSalesSummaryReport: async (pharmacyId: string): Promise<SalesSummaryReport> => Promise.resolve({ profitData: [], salesByStaff: [], salesByPaymentMethod: [] }),
+    getSalesSummaryReport: async (pharmacyId: string): Promise<SalesSummaryReport> => {
+        const pharmacySales = sales.filter(s => s.pharmacyId === pharmacyId && s.status === SaleStatus.COMPLETED);
+        
+        // Realistic mock daily profit for the last 7 days
+        const profitData = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const day = d.toLocaleString('en-us', { weekday: 'short' });
+            const daySales = pharmacySales.filter(s => new Date(s.createdAt).toDateString() === d.toDateString());
+            const profit = daySales.reduce((acc, sale) => {
+                const saleProfit = sale.items.reduce((itemAcc, item) => {
+                    const med = medicines.find(m => m.id === item.medicineId);
+                    return itemAcc + (item.total - (med ? med.costPrice * item.quantity : 0));
+                }, 0);
+                return acc + saleProfit;
+            }, 0);
+            return { name: day, value: Math.round(Math.max(0, profit)) };
+        }).reverse();
+
+        // Sales by staff
+        const salesByStaffMap: Record<string, number> = {};
+        pharmacySales.forEach(sale => {
+            salesByStaffMap[sale.staffName] = (salesByStaffMap[sale.staffName] || 0) + sale.totalAmount;
+        });
+        const salesByStaff = Object.entries(salesByStaffMap).map(([name, value]) => ({ name, value }));
+
+        // Sales by payment method
+        const salesByPaymentMethodMap: Record<string, number> = {};
+        pharmacySales.forEach(sale => {
+            sale.payments.forEach(p => {
+                salesByPaymentMethodMap[p.method] = (salesByPaymentMethodMap[p.method] || 0) + p.amount;
+            });
+        });
+        const salesByPaymentMethod = Object.entries(salesByPaymentMethodMap).map(([name, value]) => ({ name, value }));
+
+        return Promise.resolve({ profitData, salesByStaff, salesByPaymentMethod });
+    },
     getMedicineSalesReport: async (pharmacyId: string): Promise<MedicineSalesReportItem[]> => {
         const pharmacySales = sales.filter(s => s.pharmacyId === pharmacyId && s.status === SaleStatus.COMPLETED);
         
